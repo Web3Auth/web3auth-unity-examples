@@ -1,7 +1,6 @@
 # Web3Auth Unity Auth0 Example
 
-[![Web3Auth](https://img.shields.io/badge/Web3Auth-SDK-blue)](https://web3auth.io/docs/sdk/pnp/unity)
-[![Web3Auth](https://img.shields.io/badge/Web3Auth-Community-cyan)](https://community.web3auth.io)
+[![Web3Auth](https://img.shields.io/badge/Web3Auth_SDK-7.0.2-blue)](https://github.com/Web3Auth/web3auth-unity-sdk/releases/tag/7.0.2)
 
 This example demonstrates how to integrate Web3Auth with Auth0 in a Unity application. It shows how to use Auth0 as a custom authentication provider with Web3Auth, combining Auth0's powerful authentication features with Web3Auth's blockchain capabilities.
 
@@ -17,13 +16,13 @@ This example demonstrates how to integrate Web3Auth with Auth0 in a Unity applic
 
 ## 📋 Prerequisites
 
-- Unity 2020.3 LTS or higher
-- .NET 4.x or higher
-- Web3Auth Dashboard Account ([Sign up here](https://dashboard.web3auth.io))
+- Unity 6.3 LTS (`6000.3.22f1`)
+- Web3Auth Unity SDK 7.0.2 (included under `Assets/Plugins/Web3AuthSDK`)
+- A [MetaMask Developer Dashboard](https://developer.metamask.io/) Embedded Wallets project
 - Auth0 Account ([Sign up here](https://auth0.com))
 - Platform-specific requirements:
-  - iOS: Xcode 13.0+, iOS 13.0+ device
-  - Android: Android Studio, Android SDK 21+
+  - iOS: Xcode and an iOS 13.0+ device
+  - Android: Android SDK 24+
   - WebGL: Modern browser with Web3 support
 
 ## 🚀 Getting Started
@@ -41,12 +40,10 @@ cd web3auth-unity-examples/unity-auth0-example
    - Open the project
 
 3. Configure Web3Auth and Auth0:
-   - Follow the [Web3Auth Unity SDK Setup Guide](https://web3auth.io/docs/sdk/pnp/unity/installation) for installation
-   - Follow the [Custom Authentication Guide](https://web3auth.io/docs/auth-provider-setup/auth0) for Auth0 setup
-   - Get your Client ID from [Web3Auth Dashboard](https://dashboard.web3auth.io)
-   - Open the demo scene in `Assets/Scenes/Web3AuthDemo.unity`
-   - Select the Web3Auth game object
-   - Configure with your Web3Auth and Auth0 credentials
+   - Create an Auth0 connection in the Embedded Wallets dashboard
+   - Open `Assets/Web3Auth-Example.unity`
+   - Configure the Web3Auth client ID, Auth0 domain/client ID, and connection ID in `Assets/Web3AuthScript.cs`
+   - Allowlist `w3aexample://com.web3auth.unityauth0example/auth` in the dashboard
 
 ## 📚 Example Implementation
 
@@ -57,18 +54,13 @@ The example code in this repository demonstrates:
 - User session management
 - Blockchain interaction with Auth0 authentication
 
-Check out:
-- `Assets/Scripts` directory for the implementation details
-- [Web3Auth Unity Integration Guide](https://web3auth.io/docs/sdk/pnp/unity/initialize) for detailed configuration
-- [Auth0 Setup Guide](https://web3auth.io/docs/auth-provider-setup/auth0) for Auth0 configuration
-- [Platform Setup Guide](https://web3auth.io/docs/sdk/pnp/unity/platform-setup) for iOS, Android, and WebGL configuration
+The implementation is in `Assets/Web3AuthScript.cs`. See [Unity custom authentication](https://docs.metamask.io/embedded-wallets/sdk/unity/advanced/custom-authentication/) for connection setup.
 
 ## 🤝 Support
 
-- [Web3Auth Documentation](https://web3auth.io/docs/sdk/pnp/unity)
+- [Unity SDK Documentation](https://docs.metamask.io/embedded-wallets/sdk/unity/)
 - [Auth0 Documentation](https://auth0.com/docs)
-- [Discord](https://discord.gg/web3auth)
-- [Guides](https://web3auth.io/docs/guides)
+- [Builder Hub](https://builder.metamask.io/c/embedded-wallets/5)
 
 ## 📝 License
 

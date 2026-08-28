@@ -642,7 +642,7 @@ GameObject:
   - component: {fileID: 311891818}
   - component: {fileID: 311891817}
   m_Layer: 5
-  m_Name: Sign Response
+  m_Name: Mange MFA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1016,9 +1016,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3eab2a0bf902d6e4b9c2e968ad89f528, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clientId: BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ
+  clientId: BHgArYmWwSeq21czpcarYh0EVq2WWOzflX-NTK-tY1-1pauPzHKRRLgpABkmYiIV_og9jAvoIxQ8L3Smrwe04Lw
   redirectUri: torusapp://com.torus.Web3AuthUnity/auth
-  network: 5
+  network: 4
 --- !u!1 &505954357
 GameObject:
   m_ObjectHideFlags: 0
@@ -1389,7 +1389,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Get Sign response
+  m_Text: Manage MFA
 --- !u!222 &537563201
 CanvasRenderer:
   m_ObjectHideFlags: 0

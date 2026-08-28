@@ -1,0 +1,19 @@
+<linker>
+    <!-- The JSON-RPC models and converters below are only ever touched by the JSON serializer, so
+         IL2CPP strips their members and constructors. Symptoms without this file are requests sent
+         as an empty "{}" body and "No parameterless constructor defined for ..." at runtime.
+         Preserving whole Nethereum assemblies is not an option: IL2CPP then tries to convert types
+         bound to a Nethereum.Signer version that is not shipped here, and the build fails. -->
+    <assembly fullname="Nethereum.Unity">
+        <type fullname="Nethereum.Unity.RpcModel.*" preserve="all"/>
+    </assembly>
+    <assembly fullname="Nethereum.JsonRpc.Client">
+        <type fullname="Nethereum.JsonRpc.Client.RpcMessages.*" preserve="all"/>
+    </assembly>
+    <assembly fullname="Nethereum.RPC">
+        <type fullname="Nethereum.RPC.Eth.DTOs.BlockParameterJsonConverter" preserve="all"/>
+    </assembly>
+    <assembly fullname="Nethereum.Hex">
+        <type fullname="Nethereum.Hex.HexTypes.HexRPCTypeJsonConverter`2" preserve="all"/>
+    </assembly>
+</linker>

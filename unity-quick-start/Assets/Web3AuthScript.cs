@@ -12,6 +12,8 @@ using Nethereum.ABI.Encoders;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3.Accounts;
 using Nethereum.Web3.Accounts.Managed;
+using Nethereum.Unity.Rpc;
+using Nethereum.RPC.Eth.DTOs;
 using Newtonsoft.Json.Linq;
 
 public class Web3AuthScript : MonoBehaviour
@@ -22,8 +24,8 @@ public class Web3AuthScript : MonoBehaviour
     private string privateKey;
     private string userInfo;
     private Account account;
-    Web3 web3;
-    const string rpcURL = "https://1rpc.io/eth";
+    const string rpcURL = "https://ethereum-rpc.publicnode.com";
+    const string sepoliaRpcURL = "https://ethereum-sepolia-rpc.publicnode.com";
 
     // Start is called before the first frame update
     void Start()
@@ -98,12 +100,9 @@ public class Web3AuthScript : MonoBehaviour
         privateKey = response.privKey;
         var newAccount = new Account(privateKey);
         account = newAccount;
-
-        var rpc = new Nethereum.JsonRpc.Client.RpcClient(new System.Uri(rpcURL));
-        web3 = new Web3(account, rpc);
         // IMP END - Blockchain Calls
 
-        Debug.Log(JsonConvert.SerializeObject(response, Formatting.Indented));
+        Debug.Log(withoutSecrets(JsonConvert.SerializeObject(response, Formatting.Indented)));
         updateConsole(JsonConvert.SerializeObject(response, Formatting.Indented));
     }
     // IMP END - Login
@@ -117,7 +116,7 @@ public class Web3AuthScript : MonoBehaviour
             updateConsole("Please Login First");
             return;
         }
-        Debug.Log(userInfo);
+        Debug.Log(withoutSecrets(userInfo));
         updateConsole(userInfo);
     }
 
@@ -169,7 +168,7 @@ public class Web3AuthScript : MonoBehaviour
         var chainConfig = new ChainConfig()
         {
             chainId = "0xaa36a7",
-            rpcTarget = "https://1rpc.io/sepolia",
+            rpcTarget = sepoliaRpcURL,
             ticker = "ETH",
             chainNamespace = Web3Auth.ChainNamespace.EIP155
         };
@@ -185,7 +184,7 @@ public class Web3AuthScript : MonoBehaviour
         var chainConfig = new ChainConfig()
         {
             chainId = "0xaa36a7",
-            rpcTarget = "https://1rpc.io/sepolia",
+            rpcTarget = sepoliaRpcURL,
             ticker = "ETH",
             chainNamespace = Web3Auth.ChainNamespace.EIP155
         };
@@ -231,8 +230,22 @@ public class Web3AuthScript : MonoBehaviour
             updateConsole("Please Login First");
             return;
         }
-        var balance = web3.Eth.GetBalance.SendRequestAsync(account.Address).Result.Value;
+        StartCoroutine(getBalanceRoutine());
+    }
 
+    private IEnumerator getBalanceRoutine()
+    {
+        var request = new EthGetBalanceUnityRequest(rpcURL, null, null);
+        yield return request.SendRequest(account.Address, BlockParameter.CreateLatest());
+
+        if (request.Exception != null)
+        {
+            Debug.Log(request.Exception.Message);
+            updateConsole(request.Exception.Message);
+            yield break;
+        }
+
+        var balance = request.Result.Value;
         Debug.Log(balance);
         updateConsole(balance.ToString());
     }
@@ -257,6 +270,17 @@ public class Web3AuthScript : MonoBehaviour
     public void updateConsole(string message)
     {
         console.text = message;
+    }
+
+    // Device logs are readable outside the app, so key material and tokens are stripped before
+    // logging. The in-app console below still shows the full payload.
+    private static string withoutSecrets(string json)
+    {
+        var payload = JObject.Parse(json);
+        foreach (var field in new[] { "privKey", "ed25519PrivKey", "coreKitKey", "coreKitEd25519PrivKey", "idToken" })
+            payload.Remove(field);
+        (payload["userInfo"] as JObject)?.Remove("idToken");
+        return payload.ToString();
     }
 
     // Update is called once per frame

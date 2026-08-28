@@ -1,18 +1,17 @@
 # Web3Auth Unity Examples
 
-[![Web3Auth](https://img.shields.io/badge/Web3Auth-SDK-blue)](https://web3auth.io/docs/sdk/pnp/unity)
-[![Web3Auth](https://img.shields.io/badge/Web3Auth-Community-cyan)](https://community.web3auth.io)
+[![Web3Auth](https://img.shields.io/badge/Web3Auth_SDK-7.0.2-blue)](https://github.com/Web3Auth/web3auth-unity-sdk/releases/tag/7.0.2)
+[![Unity](https://img.shields.io/badge/Unity-6000.3.22f1-black)](https://unity.com/releases/editor/whats-new/6000.3.22f1)
 
-[Web3Auth](https://web3auth.io) is a pluggable auth infrastructure for Web3 wallets and applications. It streamlines the onboarding of both mainstream and crypto native users within a minute by providing experiences they're most comfortable with.
+[MetaMask Embedded Wallets](https://metamask.io/developer/embedded-wallets/) provides pluggable authentication and non-custodial key infrastructure for Web3 applications.
 
 With support for social logins, web & mobile native platforms, wallets and other key management methods, Web3Auth results in a standard cryptographic key provider specific to the user and application.
 
 ## 📝 Important Links
 
-- [Website](https://web3auth.io)
-- [Documentation](https://web3auth.io/docs)
-- [Unity SDK Documentation](https://web3auth.io/docs/sdk/pnp/unity)
-- [Pricing](https://web3auth.io/pricing.html)
+- [Embedded Wallets](https://metamask.io/developer/embedded-wallets/)
+- [Documentation](https://docs.metamask.io/embedded-wallets/)
+- [Unity SDK Documentation](https://docs.metamask.io/embedded-wallets/sdk/unity/)
 
 ## 🚀 Example Projects
 
@@ -30,10 +29,10 @@ This repository contains the following example projects demonstrating different 
 - Shows how to use Web3Auth with Auth0's authentication system
 - Includes Auth0 configuration and setup
 
-### Aggregate Verifier Example
+### Grouped Auth Connection Example
 [unity-aggregate-verifier-example](./unity-aggregate-verifier-example)
 - Demonstrates using multiple authentication methods together
-- Shows how to implement aggregate verifiers
+- Shows how to implement grouped auth connections (formerly aggregate verifiers)
 - Includes examples with Google and Auth0 authentication
 
 ## 🔧 Installation & Usage
@@ -41,8 +40,8 @@ This repository contains the following example projects demonstrating different 
 Each example project contains its own README with specific setup instructions. Generally, you'll need to:
 
 1. Clone this repository
-2. Open the desired example project in Unity
-3. Configure your Web3Auth Dashboard settings
+2. Open the desired example project in Unity 6.3 LTS (`6000.3.22f1`)
+3. Configure your Embedded Wallets project in the [MetaMask Developer Dashboard](https://developer.metamask.io/)
 4. Add your client ID and other required credentials
 5. Build and run the project
 
@@ -50,8 +49,8 @@ For detailed setup instructions, please refer to the README in each example proj
 
 ## ❓ Help and Support
 
-- Join our [Web3Auth Community](https://web3auth.io/community) for live support and discussions
-- Check our [Unity SDK Documentation](https://web3auth.io/docs/sdk/pnp/unity) for comprehensive guides
+- Join the [MetaMask Builder Hub](https://builder.metamask.io/c/embedded-wallets/5) for support and discussions
+- Check the [Unity SDK documentation](https://docs.metamask.io/embedded-wallets/sdk/unity/)
 
 ## 📜 License
 
@@ -61,4 +60,4 @@ This project is licensed under the MIT license. See the [LICENSE](./LICENSE) fil
 
 | Platform | Latest Version | Documentation |
 |----------|---------------|---------------|
-| Unity    | [![GitHub release](https://img.shields.io/github/v/release/Web3Auth/web3auth-unity-sdk?label=%22%22)](https://github.com/Web3Auth/web3auth-unity-sdk/releases/latest) | [Documentation](https://web3auth.io/docs/sdk/pnp/unity) |
+| Unity    | [7.0.2](https://github.com/Web3Auth/web3auth-unity-sdk/releases/tag/7.0.2) | [Documentation](https://docs.metamask.io/embedded-wallets/sdk/unity/) |

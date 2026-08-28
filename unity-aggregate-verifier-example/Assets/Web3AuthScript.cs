@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
@@ -11,6 +12,8 @@ using Nethereum.ABI.Encoders;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3.Accounts;
 using Nethereum.Web3.Accounts.Managed;
+using Nethereum.Unity.Rpc;
+using Nethereum.RPC.Eth.DTOs;
 using Newtonsoft.Json.Linq;
 
 public class Web3AuthScript : MonoBehaviour
@@ -20,8 +23,8 @@ public class Web3AuthScript : MonoBehaviour
     private string privateKey;
     private string userInfo;
     private Account account;
-    Web3 web3;
-    const string rpcURL = "https://1rpc.io/sepolia";
+    const string rpcURL = "https://ethereum-sepolia-rpc.publicnode.com";
+    const int sepoliaChainId = 11155111;
 
     // Start is called before the first frame update
     void Start()
@@ -51,7 +54,7 @@ public class Web3AuthScript : MonoBehaviour
         web3Auth.setOptions(new Web3AuthOptions()
         {
             clientId = "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ",
-            redirectUrl = new System.Uri("w3aexample://com.web3auth.unityaggregateexample"),
+            redirectUrl = new System.Uri("w3aexample://com.web3auth.unityaggregateexample/auth"),
             network = Web3Auth.Network.SAPPHIRE_MAINNET,
             loginConfig = new Dictionary<string, LoginConfigItem>
             {
@@ -118,10 +121,7 @@ public class Web3AuthScript : MonoBehaviour
         var newAccount = new Account(privateKey);
         account = newAccount;
 
-        var rpc = new Nethereum.JsonRpc.Client.RpcClient(new Uri(rpcURL));
-        web3 = new Web3(account, rpc);
-
-        Debug.Log(JsonConvert.SerializeObject(response, Formatting.Indented));
+        Debug.Log(withoutSecrets(JsonConvert.SerializeObject(response, Formatting.Indented)));
         updateConsole(JsonConvert.SerializeObject(response, Formatting.Indented));
     }
 
@@ -131,7 +131,7 @@ public class Web3AuthScript : MonoBehaviour
             updateConsole("Please Login First");
             return;
         }
-        Debug.Log(userInfo);
+        Debug.Log(withoutSecrets(userInfo));
         updateConsole(userInfo);
     }
 
@@ -161,24 +161,29 @@ public class Web3AuthScript : MonoBehaviour
         updateConsole(account.Address);
     }
 
-    public async void getChainId() {
+    public void getChainId() {
         if (account == null) {
             Debug.Log("Please Login First");
             updateConsole("Please Login First");
             return;
         }
-        try
+        StartCoroutine(getChainIdRoutine());
+    }
+
+    private IEnumerator getChainIdRoutine()
+    {
+        var request = new NetVersionUnityRequest(rpcURL, null, null);
+        yield return request.SendRequest();
+
+        if (request.Exception != null)
         {
-            var chainId = await web3.Net.Version.SendRequestAsync();
-        
-        Debug.Log(chainId);
-        updateConsole(chainId.ToString());
+            Debug.Log(request.Exception.Message);
+            updateConsole(request.Exception.Message);
+            yield break;
         }
-        catch (Exception e)
-        {
-            Debug.Log(e);
-            updateConsole(e.ToString());
-        }
+
+        Debug.Log(request.Result);
+        updateConsole(request.Result);
     }
 
     public void getBalance()
@@ -188,18 +193,24 @@ public class Web3AuthScript : MonoBehaviour
             updateConsole("Please Login First");
             return;
         }
-        try
+        StartCoroutine(getBalanceRoutine());
+    }
+
+    private IEnumerator getBalanceRoutine()
+    {
+        var request = new EthGetBalanceUnityRequest(rpcURL, null, null);
+        yield return request.SendRequest(account.Address, BlockParameter.CreateLatest());
+
+        if (request.Exception != null)
         {
-            var balance = web3.Eth.GetBalance.SendRequestAsync(account.Address).Result.Value;
-        
+            Debug.Log(request.Exception.Message);
+            updateConsole(request.Exception.Message);
+            yield break;
+        }
+
+        var balance = request.Result.Value;
         Debug.Log(balance);
         updateConsole(balance.ToString());
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e);
-            updateConsole(e.ToString());
-        }
     }
 
     public void signMessage()
@@ -225,7 +236,7 @@ public class Web3AuthScript : MonoBehaviour
         }
     }
 
-    public async void sendTransaction()
+    public void sendTransaction()
     {
         if (account == null)
         {
@@ -233,20 +244,54 @@ public class Web3AuthScript : MonoBehaviour
             updateConsole("Please Login First");
             return;
         }
-        try
-        {
-            var toAddress = "0x2E464670992574A613f10F7682D5057fB507Cc21";
-            var transaction = await web3.TransactionManager.SendTransactionAsync(account.Address, toAddress, new Nethereum.Hex.HexTypes.HexBigInteger(1));
+        StartCoroutine(sendTransactionRoutine());
+    }
 
-            Debug.Log(transaction);
-            updateConsole(transaction.ToString());
+    private IEnumerator sendTransactionRoutine()
+    {
+        var toAddress = "0x2E464670992574A613f10F7682D5057fB507Cc21";
 
-        } catch(Exception e)
+        var nonceRequest = new EthGetTransactionCountUnityRequest(rpcURL, null, null);
+        yield return nonceRequest.SendRequest(account.Address, BlockParameter.CreatePending());
+        if (nonceRequest.Exception != null)
         {
-            Debug.Log(e);
-            updateConsole(e.ToString());
+            Debug.Log(nonceRequest.Exception.Message);
+            updateConsole(nonceRequest.Exception.Message);
+            yield break;
         }
-        
+
+        var gasPriceRequest = new EthGasPriceUnityRequest(rpcURL, null, null);
+        yield return gasPriceRequest.SendRequest();
+        if (gasPriceRequest.Exception != null)
+        {
+            Debug.Log(gasPriceRequest.Exception.Message);
+            updateConsole(gasPriceRequest.Exception.Message);
+            yield break;
+        }
+
+        // Signed here rather than with Nethereum.Unity's transaction helpers, because those are
+        // built against a Nethereum.Signer version that the SDK does not ship, which makes them
+        // impossible to convert with IL2CPP.
+        var signedTransaction = new LegacyTransactionSigner().SignTransaction(
+            privateKey,
+            sepoliaChainId,
+            toAddress,
+            1,
+            nonceRequest.Result.Value,
+            gasPriceRequest.Result.Value,
+            21000);
+
+        var sendRequest = new EthSendRawTransactionUnityRequest(rpcURL, null, null);
+        yield return sendRequest.SendRequest(signedTransaction.StartsWith("0x") ? signedTransaction : "0x" + signedTransaction);
+        if (sendRequest.Exception != null)
+        {
+            Debug.Log(sendRequest.Exception.Message);
+            updateConsole(sendRequest.Exception.Message);
+            yield break;
+        }
+
+        Debug.Log(sendRequest.Result);
+        updateConsole(sendRequest.Result);
     }
 
     public void enableMFA()
@@ -276,7 +321,7 @@ public class Web3AuthScript : MonoBehaviour
     {
         var chainConfig = new ChainConfig()
         {
-            chainId = "0x1",
+            chainId = "0xaa36a7",
             rpcTarget = rpcURL,
             ticker = "ETH",
             chainNamespace = Web3Auth.ChainNamespace.EIP155
@@ -289,7 +334,7 @@ public class Web3AuthScript : MonoBehaviour
         var chainConfig = new ChainConfig()
         {
             chainId = "0xaa36a7",
-            rpcTarget = "https://1rpc.io/sepolia",
+            rpcTarget = rpcURL,
             ticker = "ETH",
             chainNamespace = Web3Auth.ChainNamespace.EIP155
         };
@@ -317,6 +362,17 @@ public class Web3AuthScript : MonoBehaviour
 
     public void updateConsole(string message){
         console.text = message;
+    }
+
+    // Device logs are readable outside the app, so key material and tokens are stripped before
+    // logging. The in-app console below still shows the full payload.
+    private static string withoutSecrets(string json)
+    {
+        var payload = JObject.Parse(json);
+        foreach (var field in new[] { "privKey", "ed25519PrivKey", "coreKitKey", "coreKitEd25519PrivKey", "idToken" })
+            payload.Remove(field);
+        (payload["userInfo"] as JObject)?.Remove("idToken");
+        return payload.ToString();
     }
 
     // Update is called once per frame

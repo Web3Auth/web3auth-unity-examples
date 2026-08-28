@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -68,7 +68,7 @@ public class Web3AuthSample : MonoBehaviour
         {
             verifier = "your_verifierid_from_web3auth_dashboard",
             typeOfLogin = TypeOfLogin.GOOGLE,
-            clientId = "your_clientId_from_web3auth_dashboard"
+            clientId = "BHgArYmWwSeq21czpcarYh0EVq2WWOzflX-NTK-tY1-1pauPzHKRRLgpABkmYiIV_og9jAvoIxQ8L3Smrwe04Lw"
         };
 
         web3Auth = GetComponent<Web3Auth>();
@@ -94,9 +94,9 @@ public class Web3AuthSample : MonoBehaviour
                 {"CUSTOM_VERIFIER", loginConfigItem}
             }
             */
-            clientId = "BFuUqebV5I8Pz5F7a5A2ihW7YVmbv_OHXnHYDv6OltAD5NGr6e-ViNvde3U4BHdn6HvwfkgobhVu4VwC-OSJkik",
-            buildEnv = BuildEnv.TESTING,
-            redirectUrl = new Uri("torusapp://com.torus.Web3AuthUnity/auth"),
+            clientId = "BHgArYmWwSeq21czpcarYh0EVq2WWOzflX-NTK-tY1-1pauPzHKRRLgpABkmYiIV_og9jAvoIxQ8L3Smrwe04Lw",
+            buildEnv = BuildEnv.PRODUCTION,
+            redirectUrl = new Uri("torusapp://com.torus.Web3AuthUnity"),
             network = Web3Auth.Network.SAPPHIRE_DEVNET,
             sessionTime = 86400
         });
@@ -104,6 +104,7 @@ public class Web3AuthSample : MonoBehaviour
         web3Auth.onLogout += onLogout;
         web3Auth.onMFASetup += onMFASetup;
         web3Auth.onSignResponse += onSignResponse;
+        web3Auth.onManageMFA += onManageMFA;
 
         emailAddressField.gameObject.SetActive(false);
         logoutButton.gameObject.SetActive(false);
@@ -117,6 +118,7 @@ public class Web3AuthSample : MonoBehaviour
         mfaSetupButton.onClick.AddListener(enableMFA);
         launchWalletServicesButton.onClick.AddListener(launchWalletServices);
         signMessageButton.onClick.AddListener(request);
+        signResponseButton.onClick.AddListener(manageMFA);
 
         verifierDropdown.AddOptions(verifierList.Select(x => x.name).ToList());
         verifierDropdown.onValueChanged.AddListener(onVerifierDropDownChange);
@@ -158,6 +160,10 @@ public class Web3AuthSample : MonoBehaviour
     private void onSignResponse(SignResponse signResponse)
     {
         Debug.Log("Retrieved SignResponse: " + signResponse);
+    }
+
+    private void onManageMFA(bool response) {
+        Debug.Log("Manage MFA: " + response);
     }
 
     private void onVerifierDropDownChange(int selectedIndex)
@@ -218,6 +224,26 @@ public class Web3AuthSample : MonoBehaviour
             };
         }
         web3Auth.enableMFA(options);
+    }
+
+    private void manageMFA()
+    {
+        var selectedProvider = verifierList[verifierDropdown.value].loginProvider;
+
+        var options = new LoginParams()
+        {
+            loginProvider = selectedProvider,
+            mfaLevel = MFALevel.MANDATORY
+        };
+
+        if (selectedProvider == Provider.EMAIL_PASSWORDLESS)
+        {
+            options.extraLoginOptions = new ExtraLoginOptions()
+            {
+                login_hint = emailAddressField.text
+            };
+        }
+        web3Auth.manageMFA(options);
     }
 
     private void launchWalletServices() {
