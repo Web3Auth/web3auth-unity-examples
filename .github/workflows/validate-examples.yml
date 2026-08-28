@@ -1,0 +1,50 @@
+name: Validate Examples
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate example projects
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check example project structure
+        run: |
+          set -euo pipefail
+          EXPECTED_UNITY_VERSION="6000.3.22f1"
+          projects=(
+            unity-quick-start
+            unity-auth0-example
+            unity-aggregate-verifier-example
+          )
+
+          for project in "${projects[@]}"; do
+            echo "::group::Validating $project"
+
+            for path in \
+              "$project/ProjectSettings/ProjectVersion.txt" \
+              "$project/Packages/manifest.json" \
+              "$project/Assets"; do
+              if [[ ! -e "$path" ]]; then
+                echo "::error::$path is missing"
+                exit 1
+              fi
+            done
+
+            actual_version="$(
+              sed -n 's/^m_EditorVersion: //p' "$project/ProjectSettings/ProjectVersion.txt" | tr -d '\r'
+            )"
+            if [[ "$actual_version" != "$EXPECTED_UNITY_VERSION" ]]; then
+              echo "::error::$project Unity version is '$actual_version', expected '$EXPECTED_UNITY_VERSION'"
+              exit 1
+            fi
+
+            echo "$project OK (Unity $actual_version)"
+            echo "::endgroup::"
+          done

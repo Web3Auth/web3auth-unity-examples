@@ -2,39 +2,72 @@ name: Unity Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Build Unity Project
+  check-license:
+    name: Check Unity license secrets
     runs-on: ubuntu-latest
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+      - name: Detect license secrets
+        id: check
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -n "$UNITY_LICENSE" ] && [ -n "$UNITY_EMAIL" ] && [ -n "$UNITY_PASSWORD" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Unity license secrets are not configured; skipping builds."
+          fi
+
+  build:
+    name: Build ${{ matrix.project }}
+    needs: check-license
+    if: needs.check-license.outputs.available == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - unity-quick-start
+          - unity-auth0-example
+          - unity-aggregate-verifier-example
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           lfs: true
-      
+
       - name: Cache Library folder
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          path: ${{ matrix.project }}/Library
+          key: Library-${{ matrix.project }}-${{ hashFiles(format('{0}/Assets/**', matrix.project), format('{0}/Packages/**', matrix.project), format('{0}/ProjectSettings/**', matrix.project)) }}
           restore-keys: |
+            Library-${{ matrix.project }}-
             Library-
 
       - name: Build project
-        uses: game-ci/unity-builder@v3
+        uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
+          projectPath: ${{ matrix.project }}
+          unityVersion: 6000.3.22f1
           targetPlatform: StandaloneWindows64
-          
+
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Build-StandaloneWindows64
-          path: build/StandaloneWindows64 
+          name: Build-${{ matrix.project }}-StandaloneWindows64
+          path: build/StandaloneWindows64
